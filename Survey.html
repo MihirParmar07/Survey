@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProMate — Tenant Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-900: #0A1628; --blue-800: #0F2347; --blue-700: #1A3A6B;
+    --blue-500: #2563EB; --blue-400: #3B82F6; --blue-200: #BFDBFE;
+    --blue-100: #DBEAFE; --blue-50: #EFF6FF;
+    --white: #FFFFFF; --gray-50: #F8FAFC; --gray-100: #F1F5F9;
+    --gray-300: #CBD5E1; --gray-400: #94A3B8; --gray-500: #64748B; --gray-600: #475569;
+    --green: #10B981;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--blue-900);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 10% 0%, rgba(37,99,235,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(37,99,235,0.12) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  header {
+    position: relative; z-index: 10;
+    padding: 24px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo { font-family:'Sora',sans-serif; font-size:22px; font-weight:800; color:var(--white); letter-spacing:-0.5px; text-decoration:none; }
+  .logo span { color: var(--blue-400); }
+  .header-badge { font-size:12px; color:var(--blue-200); background:rgba(37,99,235,0.2); border:1px solid rgba(59,130,246,0.3); padding:6px 14px; border-radius:100px; letter-spacing:0.5px; }
+  .main { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:48px 20px 80px; position:relative; z-index:1; }
+  .survey-container { width:100%; max-width:680px; }
+  .progress-wrap { margin-bottom:36px; }
+  .progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .progress-label { font-size:12px; color:var(--blue-200); letter-spacing:1px; font-weight:500; }
+  .progress-count { font-family:'Sora',sans-serif; font-size:12px; color:var(--gray-400); }
+  .progress-bar { height:4px; background:rgba(255,255,255,0.08); border-radius:100px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg, var(--blue-500), var(--blue-400)); border-radius:100px; transition:width 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .step { display:none; animation:fadeSlide 0.4s ease forwards; }
+  .step.active { display:block; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .step-card { background:rgba(255,255,255,0.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.09); border-radius:24px; padding:48px; margin-bottom:20px; }
+  .step-number { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--blue-400); margin-bottom:16px; }
+  .step-number::before { content:''; display:inline-block; width:20px; height:2px; background:var(--blue-400); border-radius:2px; }
+  .step-title { font-family:'Sora',sans-serif; font-size:28px; font-weight:700; color:var(--white); line-height:1.25; margin-bottom:10px; }
+  .step-subtitle { font-size:15px; color:var(--gray-400); line-height:1.6; margin-bottom:36px; }
+  .field-group { margin-bottom:22px; }
+  .field-label { display:block; font-size:13px; font-weight:500; color:var(--blue-200); margin-bottom:8px; letter-spacing:0.3px; }
+  .field-label .req { color:var(--blue-400); margin-left:2px; }
+  input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+    width:100%; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.1); border-radius:12px;
+    padding:14px 18px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--white); outline:none;
+    transition:border-color 0.2s, background 0.2s, box-shadow 0.2s; -webkit-appearance:none;
+  }
+  input::placeholder, textarea::placeholder { color:var(--gray-500); }
+  input:focus, select:focus, textarea:focus { border-color:var(--blue-400); background:rgba(37,99,235,0.08); box-shadow:0 0 0 3px rgba(37,99,235,0.15); }
+  select option { background:var(--blue-900); color:var(--white); }
+  textarea { resize:vertical; min-height:100px; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .chips-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip input[type="checkbox"], .chip input[type="radio"] { display:none; }
+  .chip label { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:100px; border:1.5px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--gray-300); font-size:14px; cursor:pointer; transition:all 0.2s; user-select:none; }
+  .chip label:hover { border-color:var(--blue-400); color:var(--white); background:rgba(37,99,235,0.12); }
+  .chip input:checked + label { border-color:var(--blue-400); background:rgba(37,99,235,0.2); color:var(--white); font-weight:500; }
+  .chip input:checked + label::before { content:'✓'; font-size:11px; color:var(--blue-400); font-weight:700; }
+  .rating-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .rating-btn { width:48px; height:48px; border-radius:12px; border:1.5px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--gray-300); font-family:'Sora',sans-serif; font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; }
+  .rating-btn:hover { border-color:var(--blue-400); background:rgba(37,99,235,0.12); color:var(--white); }
+  .rating-btn.selected { border-color:var(--blue-400); background:var(--blue-500); color:var(--white); box-shadow:0 4px 12px rgba(37,99,235,0.4); }
+  .rating-labels { display:flex; justify-content:space-between; margin-top:8px; }
+  .rating-labels span { font-size:11px; color:var(--gray-500); }
+  .divider { height:1px; background:rgba(255,255,255,0.06); margin:28px 0; }
+  .lead-highlight { background:linear-gradient(135deg,rgba(37,99,235,0.15),rgba(59,130,246,0.08)); border:1px solid rgba(37,99,235,0.3); border-radius:16px; padding:20px 24px; margin-bottom:28px; display:flex; gap:14px; align-items:flex-start; }
+  .lead-highlight-icon { font-size:24px; flex-shrink:0; margin-top:2px; }
+  .lead-highlight-text .title { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--white); margin-bottom:4px; }
+  .lead-highlight-text .desc { font-size:13px; color:var(--blue-200); line-height:1.5; }
+  .consent-row { display:flex; align-items:flex-start; gap:12px; margin-top:8px; }
+  .consent-row input[type="checkbox"] { width:18px; height:18px; border-radius:5px; border:1.5px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); flex-shrink:0; margin-top:2px; cursor:pointer; accent-color:var(--blue-500); }
+  .consent-row label { font-size:13px; color:var(--gray-400); line-height:1.6; cursor:pointer; }
+  .consent-row label a { color:var(--blue-400); text-decoration:none; }
+  .btn-row { display:flex; gap:12px; align-items:center; margin-top:8px; }
+  .btn-next, .btn-submit { flex:1; padding:16px 32px; border-radius:14px; border:none; font-family:'Sora',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-next { background:var(--blue-500); color:var(--white); box-shadow:0 4px 20px rgba(37,99,235,0.4); }
+  .btn-next:hover { background:var(--blue-400); transform:translateY(-1px); box-shadow:0 8px 28px rgba(37,99,235,0.5); }
+  .btn-submit { background:linear-gradient(135deg,var(--blue-500),var(--blue-700)); color:var(--white); box-shadow:0 4px 20px rgba(37,99,235,0.4); }
+  .btn-submit:hover { transform:translateY(-1px); box-shadow:0 8px 28px rgba(37,99,235,0.5); }
+  .btn-back { padding:16px 24px; border-radius:14px; border:1.5px solid rgba(255,255,255,0.12); background:transparent; color:var(--gray-400); font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; transition:all 0.2s; }
+  .btn-back:hover { border-color:rgba(255,255,255,0.25); color:var(--white); }
+  #success-screen { display:none; text-align:center; padding:20px; animation:fadeSlide 0.5s ease forwards; }
+  .success-icon { width:80px; height:80px; background:linear-gradient(135deg,var(--blue-500),var(--blue-700)); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 28px; font-size:36px; box-shadow:0 8px 32px rgba(37,99,235,0.5); }
+  .success-title { font-family:'Sora',sans-serif; font-size:34px; font-weight:800; color:var(--white); margin-bottom:12px; line-height:1.2; }
+  .success-sub { font-size:16px; color:var(--gray-400); line-height:1.7; max-width:440px; margin:0 auto 40px; }
+  .success-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:36px; }
+  .success-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px 16px; }
+  .success-card .emoji { font-size:28px; margin-bottom:10px; display:block; }
+  .success-card .sc-title { font-family:'Sora',sans-serif; font-size:13px; font-weight:700; color:var(--white); margin-bottom:4px; }
+  .success-card .sc-desc { font-size:12px; color:var(--gray-500); }
+  #leads-section { margin-top:48px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:32px; display:none; }
+  .leads-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .leads-title { font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:var(--white); }
+  .leads-count { background:var(--blue-500); color:white; font-family:'Sora',sans-serif; font-size:13px; font-weight:700; padding:4px 12px; border-radius:100px; }
+  .leads-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .leads-table th { text-align:left; padding:10px 14px; color:var(--gray-400); font-size:11px; letter-spacing:2px; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .leads-table td { padding:12px 14px; color:var(--gray-300); border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; }
+  .leads-table tr:last-child td { border-bottom:none; }
+  .lead-name { color:var(--white); font-weight:500; }
+  .tag { display:inline-block; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:600; background:rgba(37,99,235,0.2); color:var(--blue-300); margin:2px 2px 2px 0; }
+  .export-btn { padding:8px 18px; border-radius:8px; border:1.5px solid rgba(255,255,255,0.15); background:transparent; color:var(--gray-300); font-size:13px; cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+  .export-btn:hover { border-color:var(--blue-400); color:var(--white); }
+  @media(max-width:600px) {
+    header { padding:16px 20px; }
+    .step-card { padding:28px 22px; }
+    .step-title { font-size:22px; }
+    .field-row { grid-template-columns:1fr; }
+    .success-cards { grid-template-columns:1fr; }
+    .main { padding:28px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo"><span>Pro</span>Mate</a>
+  <span class="header-badge">🏠 Tenant Insights Survey</span>
+</header>
+
+<!-- ⚙️ SETUP NOTICE: Remove this banner after you add your Formspree ID -->
+<div id="setup-notice" style="background:linear-gradient(90deg,#f59e0b,#d97706);color:#1c1917;padding:14px 40px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;position:relative;z-index:20;">
+  <span>⚙️</span>
+  <span>
+    <strong>Setup Required:</strong> To receive submissions by email, go to
+    <a href="https://formspree.io" target="_blank" style="color:#1c1917;text-decoration:underline">formspree.io</a>
+    → create a free form → copy your Form ID → replace <code style="background:rgba(0,0,0,0.15);padding:2px 6px;border-radius:4px">YOUR_FORM_ID</code> in this file's script. Then delete this banner.
+  </span>
+  <button onclick="document.getElementById('setup-notice').remove()" style="margin-left:auto;background:rgba(0,0,0,0.2);border:none;color:#1c1917;cursor:pointer;padding:4px 10px;border-radius:6px;font-weight:700">✕</button>
+</div>
+
+<div class="main">
+  <div class="survey-container">
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-top">
+        <span class="progress-label" id="progress-label">STEP 1 OF 5</span>
+        <span class="progress-count" id="progress-count">20% complete</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:20%"></div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step-1">
+      <div class="step-card">
+        <span class="step-number">Step 01</span>
+        <h1 class="step-title">Help us help you find your perfect home 🏡</h1>
+        <p class="step-subtitle">ProMate is building smarter rental services for tenants. Share your experience and we'll personally reach out with better options.</p>
+        <div class="lead-highlight">
+          <div class="lead-highlight-icon">🎁</div>
+          <div class="lead-highlight-text">
+            <div class="title">Complete this survey &amp; get priority access</div>
+            <div class="desc">ProMate team will personally assist you in finding your next property — for free.</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Full Name <span class="req">*</span></label>
+            <input type="text" id="f-name" placeholder="e.g. Rahul Sharma" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Phone Number <span class="req">*</span></label>
+            <input type="tel" id="f-phone" placeholder="+91 98765 43210" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email Address <span class="req">*</span></label>
+          <input type="email" id="f-email" placeholder="rahul@gmail.com" />
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Current City</label>
+            <input type="text" id="f-city" placeholder="e.g. Ahmedabad" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Preferred Area / Locality</label>
+            <input type="text" id="f-area" placeholder="e.g. Bopal, Satellite" />
+          </div>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" id="consent" checked />
+          <label for="consent">I agree to be contacted by ProMate's team with property recommendations and rental assistance. <a href="#">Privacy Policy</a></label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-next" onclick="nextStep(1)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step-2">
+      <div class="step-card">
+        <span class="step-number">Step 02</span>
+        <h2 class="step-title">What challenges did you face while searching?</h2>
+        <p class="step-subtitle">Select all that apply — your honest feedback shapes how we build ProMate.</p>
+        <div class="field-group">
+          <label class="field-label">Main pain points while searching for a rental property</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="checkbox" id="p1" name="pain" value="Fake listings"><label for="p1">Fake / misleading listings</label></div>
+            <div class="chip"><input type="checkbox" id="p2" name="pain" value="High broker fees"><label for="p2">High broker fees</label></div>
+            <div class="chip"><input type="checkbox" id="p3" name="pain" value="No response"><label for="p3">Owners not responding</label></div>
+            <div class="chip"><input type="checkbox" id="p4" name="pain" value="Hidden charges"><label for="p4">Hidden charges</label></div>
+            <div class="chip"><input type="checkbox" id="p5" name="pain" value="No virtual tour"><label for="p5">No virtual / video tours</label></div>
+            <div class="chip"><input type="checkbox" id="p6" name="pain" value="Discrimination"><label for="p6">Caste / diet discrimination</label></div>
+            <div class="chip"><input type="checkbox" id="p7" name="pain" value="Unsafe agreement"><label for="p7">Unfair rent agreements</label></div>
+            <div class="chip"><input type="checkbox" id="p8" name="pain" value="No maintenance"><label for="p8">Poor property maintenance</label></div>
+            <div class="chip"><input type="checkbox" id="p9" name="pain" value="Too expensive"><label for="p9">Properties too expensive</label></div>
+            <div class="chip"><input type="checkbox" id="p10" name="pain" value="Safety concerns"><label for="p10">Safety / neighbourhood concerns</label></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field-group">
+          <label class="field-label">How long did your last property search take?</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="radio" id="t1" name="time" value="Less than 1 week"><label for="t1">Less than 1 week</label></div>
+            <div class="chip"><input type="radio" id="t2" name="time" value="1-2 weeks"><label for="t2">1–2 weeks</label></div>
+            <div class="chip"><input type="radio" id="t3" name="time" value="2-4 weeks"><label for="t3">2–4 weeks</label></div>
+            <div class="chip"><input type="radio" id="t4" name="time" value="1-2 months"><label for="t4">1–2 months</label></div>
+            <div class="chip"><input type="radio" id="t5" name="time" value="More than 2 months"><label for="t5">More than 2 months</label></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field-group">
+          <label class="field-label">Rate your overall rental search experience (1 = very bad, 10 = excellent)</label>
+          <div class="rating-row" id="rating-search"></div>
+          <div class="rating-labels"><span>😞 Very Bad</span><span>😍 Excellent</span></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="prevStep(2)">&larr; Back</button>
+        <button class="btn-next" onclick="nextStep(2)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step-3">
+      <div class="step-card">
+        <span class="step-number">Step 03</span>
+        <h2 class="step-title">Tell us about your property needs 🔍</h2>
+        <p class="step-subtitle">This helps ProMate find the right match for you personally.</p>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Property type needed</label>
+            <select id="f-type">
+              <option value="" disabled selected>Select type</option>
+              <option>1 BHK Flat</option><option>2 BHK Flat</option><option>3 BHK Flat</option>
+              <option>Studio / 1RK</option><option>Independent House / Bungalow</option>
+              <option>PG / Hostel</option><option>Villa</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Monthly budget (₹)</label>
+            <select id="f-budget">
+              <option value="" disabled selected>Select range</option>
+              <option>Under ₹8,000</option><option>₹8,000 – ₹15,000</option>
+              <option>₹15,000 – ₹25,000</option><option>₹25,000 – ₹40,000</option>
+              <option>₹40,000 – ₹60,000</option><option>Above ₹60,000</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">When do you need to move in?</label>
+            <select id="f-movein">
+              <option value="" disabled selected>Select timeline</option>
+              <option>Immediately</option><option>Within 2 weeks</option>
+              <option>Within 1 month</option><option>1–3 months</option>
+              <option>3+ months (planning ahead)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Occupancy type</label>
+            <select id="f-occ">
+              <option value="" disabled selected>Select type</option>
+              <option>Single person</option><option>Couple</option>
+              <option>Family (with kids)</option><option>Working professionals (sharing)</option>
+              <option>Students</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Must-have amenities (select all that matter)</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="checkbox" id="a1" name="amenity" value="Parking"><label for="a1">🚗 Parking</label></div>
+            <div class="chip"><input type="checkbox" id="a2" name="amenity" value="Gym"><label for="a2">💪 Gym</label></div>
+            <div class="chip"><input type="checkbox" id="a3" name="amenity" value="Security"><label for="a3">🔐 24x7 Security</label></div>
+            <div class="chip"><input type="checkbox" id="a4" name="amenity" value="Wifi"><label for="a4">📶 Wifi Ready</label></div>
+            <div class="chip"><input type="checkbox" id="a5" name="amenity" value="Furnished"><label for="a5">🛋️ Furnished</label></div>
+            <div class="chip"><input type="checkbox" id="a6" name="amenity" value="Gated Society"><label for="a6">🏘️ Gated Society</label></div>
+            <div class="chip"><input type="checkbox" id="a7" name="amenity" value="Metro Nearby"><label for="a7">🚇 Metro Nearby</label></div>
+            <div class="chip"><input type="checkbox" id="a8" name="amenity" value="Pet Friendly"><label for="a8">🐾 Pet Friendly</label></div>
+            <div class="chip"><input type="checkbox" id="a9" name="amenity" value="Power Backup"><label for="a9">⚡ Power Backup</label></div>
+            <div class="chip"><input type="checkbox" id="a10" name="amenity" value="Swimming Pool"><label for="a10">🏊 Swimming Pool</label></div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="prevStep(3)">&larr; Back</button>
+        <button class="btn-next" onclick="nextStep(3)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step-4">
+      <div class="step-card">
+        <span class="step-number">Step 04</span>
+        <h2 class="step-title">What support would make renting easier? 💬</h2>
+        <p class="step-subtitle">Help us design the services that actually matter to you.</p>
+        <div class="field-group">
+          <label class="field-label">Which services would you want from a property management company?</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="checkbox" id="s1" name="support" value="Verified listings"><label for="s1">✅ 100% Verified listings</label></div>
+            <div class="chip"><input type="checkbox" id="s2" name="support" value="Zero brokerage"><label for="s2">💸 Zero brokerage</label></div>
+            <div class="chip"><input type="checkbox" id="s3" name="support" value="Video tour"><label for="s3">🎥 Live video tour</label></div>
+            <div class="chip"><input type="checkbox" id="s4" name="support" value="Online agreement"><label for="s4">📝 Online rent agreement</label></div>
+            <div class="chip"><input type="checkbox" id="s5" name="support" value="Dedicated manager"><label for="s5">🧑‍💼 Dedicated manager</label></div>
+            <div class="chip"><input type="checkbox" id="s6" name="support" value="Maintenance support"><label for="s6">🔧 Post move-in maintenance</label></div>
+            <div class="chip"><input type="checkbox" id="s7" name="support" value="Transparent pricing"><label for="s7">📊 Transparent pricing</label></div>
+            <div class="chip"><input type="checkbox" id="s8" name="support" value="Dispute resolution"><label for="s8">⚖️ Dispute resolution</label></div>
+            <div class="chip"><input type="checkbox" id="s9" name="support" value="Owner background check"><label for="s9">🔍 Owner background check</label></div>
+            <div class="chip"><input type="checkbox" id="s10" name="support" value="Relocation help"><label for="s10">🚚 Relocation help</label></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field-group">
+          <label class="field-label">How do you currently search for properties?</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="radio" id="ch1" name="channel" value="99acres/MagicBricks"><label for="ch1">99acres / MagicBricks</label></div>
+            <div class="chip"><input type="radio" id="ch2" name="channel" value="NoBroker"><label for="ch2">NoBroker</label></div>
+            <div class="chip"><input type="radio" id="ch3" name="channel" value="Local broker"><label for="ch3">Local broker / agent</label></div>
+            <div class="chip"><input type="radio" id="ch4" name="channel" value="Facebook/WhatsApp"><label for="ch4">Facebook / WhatsApp groups</label></div>
+            <div class="chip"><input type="radio" id="ch5" name="channel" value="Word of mouth"><label for="ch5">Word of mouth</label></div>
+            <div class="chip"><input type="radio" id="ch6" name="channel" value="Other"><label for="ch6">Other</label></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field-group">
+          <label class="field-label">Would you pay a small one-time fee (₹500–₹1,000) for a verified listing + dedicated manager?</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="radio" id="pay1" name="willpay" value="Yes definitely"><label for="pay1">Yes, definitely</label></div>
+            <div class="chip"><input type="radio" id="pay2" name="willpay" value="Maybe"><label for="pay2">Maybe, depends on value</label></div>
+            <div class="chip"><input type="radio" id="pay3" name="willpay" value="No"><label for="pay3">No, prefer free</label></div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="prevStep(4)">&larr; Back</button>
+        <button class="btn-next" onclick="nextStep(4)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step" id="step-5">
+      <div class="step-card">
+        <span class="step-number">Step 05</span>
+        <h2 class="step-title">Almost done! One last thing 🙌</h2>
+        <p class="step-subtitle">Your final thoughts help us serve you better.</p>
+        <div class="field-group">
+          <label class="field-label">Describe your worst rental experience (optional)</label>
+          <textarea id="f-worst" placeholder="e.g. The owner suddenly asked me to vacate without notice..."></textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">What would your ideal rental experience look like?</label>
+          <textarea id="f-ideal" placeholder="e.g. A trusted person handles everything, I just move in without stress..."></textarea>
+        </div>
+        <div class="divider"></div>
+        <div class="field-group">
+          <label class="field-label">How did you hear about ProMate?</label>
+          <div class="chips-grid">
+            <div class="chip"><input type="radio" id="src1" name="source" value="Instagram"><label for="src1">Instagram</label></div>
+            <div class="chip"><input type="radio" id="src2" name="source" value="Facebook"><label for="src2">Facebook</label></div>
+            <div class="chip"><input type="radio" id="src3" name="source" value="WhatsApp"><label for="src3">WhatsApp</label></div>
+            <div class="chip"><input type="radio" id="src4" name="source" value="Google Search"><label for="src4">Google Search</label></div>
+            <div class="chip"><input type="radio" id="src5" name="source" value="Friend / referral"><label for="src5">Friend / Referral</label></div>
+            <div class="chip"><input type="radio" id="src6" name="source" value="Other"><label for="src6">Other</label></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="lead-highlight">
+          <div class="lead-highlight-icon">📞</div>
+          <div class="lead-highlight-text">
+            <div class="title">ProMate will call you within 24 hours</div>
+            <div class="desc">Our rental specialist will personally assist you find the right property — no spam, no pressure.</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="prevStep(5)">&larr; Back</button>
+        <button class="btn-submit" onclick="submitForm()">🚀 Submit &amp; Get Free Assistance</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="success-screen">
+      <div class="step-card" style="text-align:center; padding:56px 40px;">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Thank you! We've got your details.</h2>
+        <p class="success-sub">Our ProMate rental specialist will personally reach out within 24 hours to help you find your perfect property.</p>
+        <div class="success-cards">
+          <div class="success-card"><span class="emoji">📞</span><div class="sc-title">Call within 24 hrs</div><div class="sc-desc">Personal specialist assigned</div></div>
+          <div class="success-card"><span class="emoji">🏠</span><div class="sc-title">Verified listings</div><div class="sc-desc">Curated to your budget</div></div>
+          <div class="success-card"><span class="emoji">💸</span><div class="sc-title">Zero broker fee</div><div class="sc-desc">No hidden charges</div></div>
+        </div>
+        <p style="font-size:14px; color:var(--gray-500);">WhatsApp us at <strong style="color:var(--blue-300);">+91 98765 43210</strong></p>
+      </div>
+    </div>
+
+    <!-- LEADS PANEL -->
+    <div id="leads-section">
+      <div class="leads-header">
+        <span class="leads-title">📋 Collected Leads</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span class="leads-count" id="leads-count">0</span>
+          <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="leads-table" id="leads-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>Phone</th><th>Email</th>
+              <th>Area</th><th>Budget</th><th>Move-in</th><th>Pain Points</th><th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="leads-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  const totalSteps = 5;
+  let leads = [];
+  try { leads = JSON.parse(localStorage.getItem('promate_leads') || '[]'); } catch(e) { leads = []; }
+
+  function buildRating(containerId, name) {
+    const container = document.getElementById(containerId);
+    for (let i = 1; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rating-btn';
+      btn.textContent = i;
+      btn.dataset.value = i;
+      btn.dataset.name = name;
+      btn.onclick = function() {
+        document.querySelectorAll('.rating-btn[data-name="' + name + '"]').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+      };
+      container.appendChild(btn);
+    }
+  }
+  buildRating('rating-search', 'search_rating');
+
+  function updateProgress(step) {
+    const pct = Math.round((step / totalSteps) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = 'STEP ' + step + ' OF ' + totalSteps;
+    document.getElementById('progress-count').textContent = pct + '% complete';
+  }
+
+  function nextStep(from) {
+    if (from === 1) {
+      const name = document.getElementById('f-name').value.trim();
+      const phone = document.getElementById('f-phone').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      if (!name || !phone || !email) { alert('Please fill in your Name, Phone, and Email to continue.'); return; }
+    }
+    document.getElementById('step-' + from).classList.remove('active');
+    currentStep = from + 1;
+    document.getElementById('step-' + currentStep).classList.add('active');
+    updateProgress(currentStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function prevStep(from) {
+    document.getElementById('step-' + from).classList.remove('active');
+    currentStep = from - 1;
+    document.getElementById('step-' + currentStep).classList.add('active');
+    updateProgress(currentStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function getChecked(name) {
+    return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(e => e.value).join(', ');
+  }
+
+  function getRadio(name) {
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function getRating(name) {
+    const el = document.querySelector('.rating-btn.selected[data-name="' + name + '"]');
+    return el ? el.dataset.value : '';
+  }
+
+  async function submitForm() {
+    const btn = document.querySelector('.btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const lead = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString('en-IN'),
+      name: document.getElementById('f-name').value.trim(),
+      phone: document.getElementById('f-phone').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
+      city: document.getElementById('f-city').value.trim(),
+      area: document.getElementById('f-area').value.trim(),
+      property_type: document.getElementById('f-type').value || '',
+      budget: document.getElementById('f-budget').value || '',
+      movein: document.getElementById('f-movein').value || '',
+      occupancy: document.getElementById('f-occ').value || '',
+      pain_points: getChecked('pain'),
+      search_time: getRadio('time'),
+      search_rating: getRating('search_rating'),
+      support_needed: getChecked('support'),
+      search_channel: getRadio('channel'),
+      will_pay: getRadio('willpay'),
+      amenities: getChecked('amenity'),
+      worst_experience: document.getElementById('f-worst').value.trim(),
+      ideal_experience: document.getElementById('f-ideal').value.trim(),
+      source: getRadio('source'),
+    };
+
+    // ── Send to Formspree ──────────────────────────────────────────────────────
+    // STEP: Replace YOUR_FORM_ID below with your actual Formspree form ID
+    // Get it free at https://formspree.io → New Form → copy the ID from the endpoint
+    const FORMSPREE_ID = 'YOUR_FORM_ID'; // ← replace this
+
+    try {
+      const res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          '_subject': '🏠 New ProMate Tenant Lead — ' + lead.name,
+          'Name': lead.name,
+          'Phone': lead.phone,
+          'Email': lead.email,
+          'City': lead.city,
+          'Area': lead.area,
+          'Property Type': lead.property_type,
+          'Budget (₹/mo)': lead.budget,
+          'Move-in': lead.movein,
+          'Occupancy': lead.occupancy,
+          'Pain Points': lead.pain_points,
+          'Search Duration': lead.search_time,
+          'Search Rating (1-10)': lead.search_rating,
+          'Support Needed': lead.support_needed,
+          'Current Search Channel': lead.search_channel,
+          'Will Pay for Verified Listing': lead.will_pay,
+          'Amenities Needed': lead.amenities,
+          'Worst Experience': lead.worst_experience,
+          'Ideal Experience': lead.ideal_experience,
+          'Heard About ProMate Via': lead.source,
+          'Submitted At': lead.timestamp,
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        // If Formspree ID not set yet, still show success locally
+        if (FORMSPREE_ID === 'YOUR_FORM_ID') {
+          console.warn('Formspree ID not configured yet — running in demo mode.');
+        } else {
+          console.error('Formspree error:', err);
+        }
+      }
+    } catch (e) {
+      console.error('Network error submitting form:', e);
+    }
+
+    // ── Save locally as backup ─────────────────────────────────────────────────
+    leads.push(lead);
+    try { localStorage.setItem('promate_leads', JSON.stringify(leads)); } catch(e) {}
+
+    // ── Show success screen ────────────────────────────────────────────────────
+    for (let i = 1; i <= totalSteps; i++) {
+      const el = document.getElementById('step-' + i);
+      if (el) el.classList.remove('active');
+    }
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    renderLeads();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderLeads() {
+    const section = document.getElementById('leads-section');
+    const tbody = document.getElementById('leads-tbody');
+    document.getElementById('leads-count').textContent = leads.length;
+    section.style.display = 'block';
+    tbody.innerHTML = '';
+    leads.forEach((l, i) => {
+      const pains = l.pain_points ? l.pain_points.split(', ').map(p => '<span class="tag">' + p + '</span>').join('') : '—';
+      const row = document.createElement('tr');
+      row.innerHTML =
+        '<td style="color:var(--gray-500)">' + (i+1) + '</td>' +
+        '<td><div class="lead-name">' + l.name + '</div><div style="font-size:11px;color:var(--gray-500)">' + l.timestamp + '</div></td>' +
+        '<td><a href="tel:' + l.phone + '" style="color:var(--blue-300);text-decoration:none">' + l.phone + '</a></td>' +
+        '<td style="font-size:12px">' + l.email + '</td>' +
+        '<td>' + (l.area || l.city || '—') + '</td>' +
+        '<td>' + (l.budget || '—') + '</td>' +
+        '<td>' + (l.movein || '—') + '</td>' +
+        '<td style="max-width:200px">' + pains + '</td>' +
+        '<td>' + (l.search_time || '—') + '</td>';
+      tbody.appendChild(row);
+    });
+  }
+
+  function exportCSV() {
+    if (leads.length === 0) { alert('No leads yet!'); return; }
+    const headers = ['#','Name','Phone','Email','City','Area','Property Type','Budget','Move-in','Occupancy','Pain Points','Search Time','Rating','Support Needed','Channel','Will Pay','Amenities','Source','Timestamp'];
+    const rows = leads.map((l, i) => [
+      i+1, l.name, l.phone, l.email, l.city, l.area, l.property_type, l.budget, l.movein, l.occupancy,
+      '"' + l.pain_points + '"', l.search_time, l.search_rating,
+      '"' + l.support_needed + '"', l.search_channel, l.will_pay,
+      '"' + l.amenities + '"', l.source, l.timestamp
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'promate_tenant_leads.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  if (leads.length > 0) renderLeads();
+</script>
+</body>
+</html>
